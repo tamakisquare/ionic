@@ -334,6 +334,9 @@
 
       var lastKeyboardHeight;
 
+      // Assume at least one <ion-header-bar> exists and, if many, they are all of the same height.
+      var headerHeight = document.getElementsByTagName('ion-header-bar')[0].clientHeight;
+
       /**
        * Shrink the scroll view when the keyboard is up if necessary and if the
        * focused input is below the bottom of the shrunk scroll view, scroll it
@@ -353,10 +356,17 @@
         //console.dir(container);
         var alreadyShrunk = self.isShrunkForKeyboard;
 
-        var isModal = container.parentNode.classList.contains('modal');
+        var isModal = false;
         var isPopover = container.parentNode.classList.contains('popover');
         // 680px is when the media query for 60% modal width kicks in
-        var isInsetModal = isModal && window.innerWidth >= 680;
+        var isInsetModal;
+
+        var activeModalNode = document.getElementsByClassName('modal active')[0];
+        if (activeModalNode) {
+          isModal = activeModalNode.contains(container);
+        }
+
+        isInsetModal = isModal && window.innerWidth >= 680;
 
        /*
         *  _______
@@ -388,8 +398,10 @@
             //var keyboardOffset = e.detail.keyboardHeight - scrollBottomOffsetToBottom;
 
             ionic.requestAnimationFrame(function(){
+              var scrollViewOffset = isModal ? 0 : headerHeight;
+
               // D - A or B - A if D > B       D - A             max(0, D - B)
-              scrollViewOffsetHeight = Math.max(0, Math.min(self.__originalContainerHeight, self.__originalContainerHeight - (e.detail.keyboardHeight - 43)));//keyboardOffset >= 0 ? scrollViewOffsetHeight - keyboardOffset : scrollViewOffsetHeight + keyboardOffset;
+              scrollViewOffsetHeight = Math.max(0, Math.min(self.__originalContainerHeight, self.__originalContainerHeight - (e.detail.keyboardHeight - scrollViewOffset)));//keyboardOffset >= 0 ? scrollViewOffsetHeight - keyboardOffset : scrollViewOffsetHeight + keyboardOffset;
 
               //console.log('Old container height', self.__originalContainerHeight, 'New container height', scrollViewOffsetHeight, 'Keyboard height', e.detail.keyboardHeight);
 

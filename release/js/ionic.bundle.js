@@ -734,7 +734,7 @@ window.ionic.version = '1.2.4';
     // whatever lookup was done to find this element failed to find it
     // so we can't listen for events on it.
     if(element === null) {
-      void 0;
+      console.error('Null element passed to gesture (element does not exist). Not listening for gesture');
       return this;
     }
 
@@ -2455,7 +2455,9 @@ window.ionic.version = '1.2.4';
   function verifyPlatformReady() {
     setTimeout(function() {
       if(!self.isReady && self.isWebView()) {
-        void 0;
+        console.warn('Possible issue: deviceready did not fire in a reasonable amount of time. ' +
+        'This can be caused by plugins in an inconsistent state. One possible solution: uninstall/remove all ' +
+        'plugins and reinstall them. Additionally, one or more plugins might be faulty or out of date.');
       }
     }, platformReadyTimer);
   }
@@ -6982,7 +6984,7 @@ ionic.scroll = {
 (function(ionic) {
   var NOOP = function() {};
   var deprecated = function(name) {
-    void 0;
+    console.error('Method not available in native scrolling: ' + name);
   };
   ionic.views.ScrollNative = ionic.views.View.inherit({
 
@@ -7315,6 +7317,9 @@ ionic.scroll = {
 
       var lastKeyboardHeight;
 
+      // Assume at least one <ion-header-bar> exists and, if many, they are all of the same height.
+      var headerHeight = document.getElementsByTagName('ion-header-bar')[0].clientHeight;
+
       /**
        * Shrink the scroll view when the keyboard is up if necessary and if the
        * focused input is below the bottom of the shrunk scroll view, scroll it
@@ -7334,10 +7339,17 @@ ionic.scroll = {
         //console.dir(container);
         var alreadyShrunk = self.isShrunkForKeyboard;
 
-        var isModal = container.parentNode.classList.contains('modal');
+        var isModal = false;
         var isPopover = container.parentNode.classList.contains('popover');
         // 680px is when the media query for 60% modal width kicks in
-        var isInsetModal = isModal && window.innerWidth >= 680;
+        var isInsetModal;
+
+        var activeModalNode = document.getElementsByClassName('modal active')[0];
+        if (activeModalNode) {
+          isModal = activeModalNode.contains(container);
+        }
+
+        isInsetModal = isModal && window.innerWidth >= 680;
 
        /*
         *  _______
@@ -7369,8 +7381,10 @@ ionic.scroll = {
             //var keyboardOffset = e.detail.keyboardHeight - scrollBottomOffsetToBottom;
 
             ionic.requestAnimationFrame(function(){
+              var scrollViewOffset = isModal ? 0 : headerHeight;
+
               // D - A or B - A if D > B       D - A             max(0, D - B)
-              scrollViewOffsetHeight = Math.max(0, Math.min(self.__originalContainerHeight, self.__originalContainerHeight - (e.detail.keyboardHeight - 43)));//keyboardOffset >= 0 ? scrollViewOffsetHeight - keyboardOffset : scrollViewOffsetHeight + keyboardOffset;
+              scrollViewOffsetHeight = Math.max(0, Math.min(self.__originalContainerHeight, self.__originalContainerHeight - (e.detail.keyboardHeight - scrollViewOffset)));//keyboardOffset >= 0 ? scrollViewOffsetHeight - keyboardOffset : scrollViewOffsetHeight + keyboardOffset;
 
               //console.log('Old container height', self.__originalContainerHeight, 'New container height', scrollViewOffsetHeight, 'Keyboard height', e.detail.keyboardHeight);
 
@@ -51247,7 +51261,7 @@ function($rootScope, $state, $location, $window, $timeout, $ionicViewSwitcher, $
         // create an element from the viewLocals template
         ele = $ionicViewSwitcher.createViewEle(viewLocals);
         if (this.isAbstractEle(ele, viewLocals)) {
-          void 0;
+          console.log('VIEW', 'abstractView', DIRECTION_NONE, viewHistory.currentView);
           return {
             action: 'abstractView',
             direction: DIRECTION_NONE,
@@ -51368,7 +51382,7 @@ function($rootScope, $state, $location, $window, $timeout, $ionicViewSwitcher, $
         }
       }
 
-      void 0;
+      console.log('VIEW', action, direction, viewHistory.currentView);
 
       hist.cursor = viewHistory.currentView.index;
 
